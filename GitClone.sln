@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitClone", "GitClone\GitClone.csproj", "{9263CFF4-A56B-410C-BACD-2B2291E93D19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitClone.Tests", "GitClone.Tests\GitClone.Tests.csproj", "{42938ECE-9EAA-4990-AFAC-9129C1103463}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9263CFF4-A56B-410C-BACD-2B2291E93D19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9263CFF4-A56B-410C-BACD-2B2291E93D19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9263CFF4-A56B-410C-BACD-2B2291E93D19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9263CFF4-A56B-410C-BACD-2B2291E93D19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42938ECE-9EAA-4990-AFAC-9129C1103463}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42938ECE-9EAA-4990-AFAC-9129C1103463}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42938ECE-9EAA-4990-AFAC-9129C1103463}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42938ECE-9EAA-4990-AFAC-9129C1103463}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
