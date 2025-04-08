@@ -13,15 +13,17 @@ public class StagingManager
     
     public void AddOrUpdateBlob(string pathToFile, string hash)
     {   
-        int startLine = GetStartLine(pathToFile, hash);
+        int startLine = GetStartLine(_gitClonePaths.IndexFile, pathToFile);
         string contentForIndex = pathToFile + "\n" + hash;
         if (startLine == -1)
         {
-            _fileIo.AppendToFile(_gitClonePaths.IndexFile,contentForIndex); 
+            _fileIo.AppendToFile(_gitClonePaths.IndexFile,contentForIndex);
+            Console.WriteLine("Could not find an existing match for: " + pathToFile);
         }
         else
         {
             _fileIo.ReplaceFileLines(_gitClonePaths.IndexFile, contentForIndex.Split("\n"), startLine);
+            Console.WriteLine("Found a match for pattern on line: " + startLine +" file: " + pathToFile);
         }
     }
     

@@ -63,6 +63,6 @@ public class UnitTest1
         
         Assert.Equal(1, matchLine);
         
-        Assert.Equal(3, noLineMatch);
+        Assert.Equal(-1, noLineMatch);
     }
 }
