@@ -23,8 +23,8 @@ public class GitController
         return _fileGenService.GenBlob(pathToFile);
     }
 
-    public void Commit(string message)
+    public string Commit(string message)
     {
-        _fileGenService.GenCommit(message);
+        return _fileGenService.GenCommit(message);
     }
 }

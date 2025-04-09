@@ -63,14 +63,16 @@ public class FileGenService
         }
     }
 
-    public void GenCommit(string message)
+    public string GenCommit(string message)
     {
         string indexContent = _fileIo.ReadContent(_gitClonePaths.IndexFile);
         string fileContent = message +"\n"+ DateTime.Now + "\n" + "Nikita\n\n" + indexContent;
 
         string hash = _hashGenerator.GenHash("commit", fileContent);
-        _fileIo.CreateFile(Path.Combine(_gitClonePaths.CommitsDir, hash), fileContent);
+        string pathToCreate = Path.Combine(_gitClonePaths.CommitsDir, hash);
+        _fileIo.CreateFile(pathToCreate, fileContent);
 
+        return pathToCreate;
 
     }
 }

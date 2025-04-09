@@ -16,53 +16,137 @@ public class UnitTest1
     public void GitOperations()
     {
         var testEnv = new TestRepoEnvironment();
-        
-        //init repo
+        List<FileAndBlob> allFilesAdded = new();
+
         testEnv.GitController.Init();
-        
-        //verify init creation
-        Assert.True(Directory.Exists(testEnv.Paths.CommitsDir));
-        Assert.True(File.Exists(testEnv.Paths.IndexFile));
-        Assert.True(Directory.Exists(testEnv.Paths.BlobsDir));
+        AssertRepoStructure(testEnv);
 
-        var file1Name = "gimpy.txt";
-        var file1Content = "Hi, I am a gimp";
+        var fileName = "gimpy.txt";
+        var fileContent = "Hi, I am a gimp";
+        string filePath = CreateTestFile(testEnv, fileName, fileContent);
+        AssertFileCreated(filePath);
 
-        string file1Path = TestFileHelper.CreateFile(testEnv.Paths.BaseDir,file1Name, file1Content);
+        string blobPath = AddHelper(testEnv, filePath, ref allFilesAdded);
+        AssertBlobMatchesOriginal(filePath, blobPath);
 
-        _testOutputHelper.WriteLine(file1Path);
-        //sanity chekc the file is created
-        Assert.True(File.Exists(file1Path), "Initial file was not created");
         
-        //add working
-        string blobPath = testEnv.GitController.Add(file1Name);
-        Assert.True(File.Exists(blobPath));
+        AssertIndexFileCorrect(testEnv, allFilesAdded.ToArray());
+
+        string commitMsg = "init commit";
+        string commitPath = testEnv.GitController.Commit(commitMsg);
+        AssertCommitFileCorrect(commitPath, commitMsg, allFilesAdded.ToArray());
         
-        //check add content
-        Assert.True(File.ReadAllText(blobPath).Equals(File.ReadAllText(file1Path)));
+        fileName = "newText.txt";
+        fileContent = "hello world";
+        filePath = CreateTestFile(testEnv, fileName, fileContent);
+        AssertFileCreated(filePath);
         
-        //check index file correctly wrote to
+        blobPath = AddHelper(testEnv, filePath, ref allFilesAdded);
+        AssertBlobMatchesOriginal(filePath, blobPath);
+        AssertIndexFileCorrect(testEnv, allFilesAdded.ToArray());
         
-        
-        
-        //cleanup
+        commitMsg = "init commit";
+        commitPath = testEnv.GitController.Commit(commitMsg);
+        AssertCommitFileCorrect(commitPath, commitMsg, allFilesAdded.ToArray());
+
         testEnv.Dispose();
-        
     }
 
     [Fact]
     public void IsFileLineCheckerWorking()
     {
         var testEnv = new TestRepoEnvironment();
-        string file1Name = "testfile.txt";
-        string file1Content = "12345\nabcd\nTHIS";
-        string file1Path = TestFileHelper.CreateFile(testEnv.Paths.BaseDir,file1Name, file1Content);
-        
-        int matchLine = FileIO.GetInstance().GetLineOfExactMatch(file1Path,"abcd");
-        int noLineMatch = FileIO.GetInstance().GetLineOfExactMatch(file1Path,"NON");
-        
-        Assert.Equal(1, matchLine);
-        
-        Assert.Equal(-1, noLineMatch);
+        string fileName = "testfile.txt";
+        string content = "12345\nabcd\nTHIS";
+        string filePath = TestFileHelper.CreateFile(testEnv.Paths.BaseDir, fileName, content);
+
+        var fileIO = FileIO.GetInstance();
+        Assert.Equal(1, fileIO.GetLineOfExactMatch(filePath, "abcd"));
+        Assert.Equal(-1, fileIO.GetLineOfExactMatch(filePath, "NON"));
     }
+
+    // ─── Helpers ─────────────────────────────────────────
+    
+    private static void AssertRepoStructure(TestRepoEnvironment testEnv)
+    {
+        Assert.True(Directory.Exists(testEnv.Paths.CommitsDir), "Commits directory missing.");
+        Assert.True(File.Exists(testEnv.Paths.IndexFile), "Index file missing.");
+        Assert.True(Directory.Exists(testEnv.Paths.BlobsDir), "Blobs directory missing.");
+    }
+
+    private string AddHelper(TestRepoEnvironment testEnv,string filePath, ref List<FileAndBlob> fileAndBlob)
+    {
+        string blobPath = testEnv.GitController.Add(filePath);
+        fileAndBlob.Add(new FileAndBlob(filePath,blobPath));
+
+        return blobPath;
+    }
+    
+    private string CreateTestFile(TestRepoEnvironment env, string name, string content)
+    {
+        string path = TestFileHelper.CreateFile(env.Paths.BaseDir, name, content);
+        _testOutputHelper.WriteLine($"Created file: {path}");
+        return path;
+    }
+
+    private static void AssertFileCreated(string path)
+    {
+        Assert.True(File.Exists(path), "Expected test file to be created.");
+    }
+
+    private static void AssertBlobMatchesOriginal(string filePath, string blobPath)
+    {
+        string originalContent = File.ReadAllText(filePath);
+        string blobContent = File.ReadAllText(blobPath);
+        Assert.Equal(originalContent, blobContent);
+    }
+
+    public struct FileAndBlob(string filePath, string blobPath)
+    {
+        public string FilePath { get; } = filePath;
+        public string BlobPath { get; } = blobPath;
+    }
+
+    
+    private void AssertIndexFileCorrect(TestRepoEnvironment env,FileAndBlob[] fileAndBlobPaths )
+    {
+        var lines = File.ReadAllLines(env.Paths.IndexFile);
+
+        try
+        {
+            for (int i = 0; i < fileAndBlobPaths.Length; i++)
+            {
+                 Assert.Equal(fileAndBlobPaths[i].FilePath, lines[i*2]);
+                 Assert.Equal(fileAndBlobPaths[i].BlobPath.Split(Path.DirectorySeparatorChar).Last(), lines[i*2+1]);
+            }
+        }
+        catch (Exception ex)
+        {
+            _testOutputHelper.WriteLine("❌ Index file assertion failed!");
+            _testOutputHelper.WriteLine("📄 Index file contents:");
+            for (int i = 0; i < lines.Length; i++)
+            {
+                _testOutputHelper.WriteLine($"[{i}] {lines[i]}");
+            }
+
+            throw; // Re-throw to keep the test red
+        }
+    }
+
+
+    private static void AssertCommitFileCorrect(string commitPath, string message, FileAndBlob[] fileAndBlobPaths)
+    {
+        Assert.True(File.Exists(commitPath), "Commit file not created.");
+        var lines = File.ReadAllLines(commitPath);
+
+        Assert.Equal(message, lines[0]);
+        
+        for (int i = 0; i < fileAndBlobPaths.Length; i++)
+        {
+            Assert.Equal(fileAndBlobPaths[i].FilePath, lines[4+i*2]);
+            Assert.Equal(fileAndBlobPaths[i].BlobPath.Split(Path.DirectorySeparatorChar).Last(), lines[i*2+5]);
+        }
+        
+    }
+    
 }
