@@ -124,4 +124,15 @@ public class FileIO
         }
         
     }
+
+    public string[] GetFilesInDirectory(string pathsCommitsDir)
+    {
+        return Directory.GetFiles(pathsCommitsDir);
+    }
+
+    public string[] GetLinesFromFile(string path, int inclusiveStart, int exclusiveEnd)
+    {
+        string[] lines = File.ReadAllLines(path);
+        return lines[new Range(inclusiveStart, exclusiveEnd)];
+    }
 }

@@ -45,9 +45,12 @@ public class UnitTest1
         AssertBlobMatchesOriginal(filePath, blobPath);
         AssertIndexFileCorrect(testEnv, allFilesAdded.ToArray());
         
-        commitMsg = "init commit";
+        commitMsg = "second commit";
         commitPath = testEnv.GitController.Commit(commitMsg);
         AssertCommitFileCorrect(commitPath, commitMsg, allFilesAdded.ToArray());
+        
+        _testOutputHelper.WriteLine("Doing git log");
+        _testOutputHelper.WriteLine(testEnv.GitController.Log());
 
         testEnv.Dispose();
     }

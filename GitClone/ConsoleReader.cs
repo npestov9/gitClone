@@ -23,6 +23,9 @@ public class ConsoleReader
                 message.Replace("\"", "");
                 controller.Commit(message);
                 break;
+            case "log" :
+                controller.Log();
+                break;
         }
     }
 }
